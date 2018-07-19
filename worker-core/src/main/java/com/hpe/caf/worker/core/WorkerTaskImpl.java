@@ -621,6 +621,7 @@ class WorkerTaskImpl implements WorkerTask
     {
         //  Return the first tracking pipe. All task messages are expected to comprise the same
         //  tracking pipe.
+        // If no tracking is present it will fall back to the defaultValue, the original task messages tracking pipe.
         final TrackingInfo tracking = taskMessages.get(0).getTracking();
         return tracking != null ? tracking.getTrackingPipe() : defaultValue;
     }
