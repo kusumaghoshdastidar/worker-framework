@@ -590,7 +590,7 @@ class WorkerTaskImpl implements WorkerTask
         }
 
         //  Make a note of the tracking pipe where progress report updates are to be sent.
-        final String trackingPipe = getTrackingPipe(reportUpdates);
+        final String trackingPipe = getTrackingPipe(reportUpdates, taskMessage.getTracking().getTrackingPipe());
 
         //  Build up a TrackingReportTask comprising a list of progress report updates to send.
         final TrackingReportTask trackingReportTask = createReportUpdatesTask(reportUpdates);
@@ -617,11 +617,12 @@ class WorkerTaskImpl implements WorkerTask
         workerCallback.reportUpdate(messageId, reportUpdateMessage);
     }
 
-    private static String getTrackingPipe(final List<TaskMessage> taskMessages)
+    private static String getTrackingPipe(final List<TaskMessage> taskMessages, final String defaultValue)
     {
         //  Return the first tracking pipe. All task messages are expected to comprise the same
         //  tracking pipe.
-        return taskMessages.get(0).getTracking().getTrackingPipe();
+        final TrackingInfo tracking = taskMessages.get(0).getTracking();
+        return tracking != null ? tracking.getTrackingPipe() : defaultValue;
     }
 
     private TrackingReportTask createReportUpdatesTask(final List<TaskMessage> taskMessages) {
