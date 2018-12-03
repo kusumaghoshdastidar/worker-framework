@@ -161,7 +161,7 @@ class WorkerTaskImpl implements WorkerTask
         Objects.requireNonNull(tm);
 
         // Publish this message
-        workerCallback.send(messageId, tm);
+        workerCallback.send("-1", tm);
     }
 
     @Override

@@ -32,16 +32,7 @@ public interface WorkerQueue
      * @param priority the message priority, greater value means higher priority
      * @throws QueueException if the message cannot be submitted
      */
-    default void publish(
-        final String acknowledgeId,
-        final byte[] taskMessage,
-        final String targetQueue,
-        final Map<String, Object> headers,
-        final int priority
-    ) throws QueueException
-    {
-        publish(acknowledgeId, taskMessage, targetQueue, headers, priority, true);
-    }
+    void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority) throws QueueException;
 
     /**
      * Acknowledge the original received message but send out a new message to a target queue.
@@ -52,35 +43,8 @@ public interface WorkerQueue
      * @param headers the map of key/value paired headers to be stamped on the message
      * @throws QueueException if the message cannot be submitted
      */
-    default void publish(
-        final String acknowledgeId,
-        final byte[] taskMessage,
-        final String targetQueue,
-        final Map<String, Object> headers
-    ) throws QueueException
-    {
-        publish(acknowledgeId, taskMessage, targetQueue, headers, 0, true);
-    }
-
-    /**
-     * Asynchronously publishes the specified message, and acknowledges the associated message when its final response is acknowledged.
-     *
-     * @param acknowledgeId the internal queue message id of the message to acknowledge
-     * @param taskMessage the message to publish
-     * @param targetQueue the queue to put the message upon
-     * @param headers the map of key/value paired headers to be stamped on the message
-     * @param priority the message priority, greater value means higher priority
-     * @param isFinalResponse whether the message is the final message associated with this message id
-     * @throws QueueException if the message cannot be submitted
-     */
-    void publish(
-        String acknowledgeId,
-        byte[] taskMessage,
-        String targetQueue,
-        Map<String, Object> headers,
-        int priority,
-        boolean isFinalResponse
-    ) throws QueueException;
+    void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
+        throws QueueException;
 
     /**
      * Called from the asynchronous worker service to notify the queue that it is rejecting a task. It is up to the queue implementation

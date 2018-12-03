@@ -385,7 +385,7 @@ final class WorkerCore
             final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
 
             try {
-                workerQueue.publish(queueMsgId, output, queue, Collections.emptyMap(), priority, false);
+                workerQueue.publish("-1", output, queue, Collections.emptyMap(), priority);
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
@@ -501,7 +501,7 @@ final class WorkerCore
             final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
 
             try {
-                workerQueue.publish(queueMsgId, output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority, false);
+                workerQueue.publish("-1", output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
