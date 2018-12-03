@@ -427,15 +427,14 @@ public class WorkerCoreTest
         }
 
         @Override
-        public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority)
-        {
-            this.lastQueue = targetQueue;
-            results.offer(taskMessage);
-        }
-
-        @Override
-        public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
-            throws QueueException
+        public void publish(
+            final String acknowledgeId,
+            final byte[] taskMessage,
+            final String targetQueue,
+            final Map<String, Object> headers,
+            final int priority,
+            final boolean isFinalResponse
+        ) throws QueueException
         {
             this.lastQueue = targetQueue;
             results.offer(taskMessage);

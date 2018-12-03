@@ -63,7 +63,14 @@ public class WorkerPublisherImpl implements WorkerPublisher
     }
 
     @Override
-    public void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers, int priority)
+    public void handlePublish(
+        final byte[] data,
+        final String routingKey,
+        final long ackId,
+        final Map<String, Object> headers,
+        final int priority,
+        final boolean isFinalResponse
+    )
     {
         try {
             LOG.debug("Publishing message with ack id {}", ackId);
@@ -72,7 +79,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
             builder.contentType("text/plain");
             builder.deliveryMode(2);
             builder.priority(priority);
-            confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), ackId);
+            confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), ackId, isFinalResponse);
             channel.basicPublish("", routingKey, builder.build(), data);
             metrics.incrementPublished();
         } catch (IOException e) {

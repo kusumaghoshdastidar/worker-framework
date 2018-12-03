@@ -91,6 +91,10 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         if (conn != null) {
             throw new IllegalStateException("Already started");
         }
+
+        final UnnamedClass unnamed = new UnnamedClass();
+        callback = unnamed.hookTaskCallback(callback);
+
         try {
             WorkerConfirmListener confirmListener = new WorkerConfirmListener(consumerQueue);
             createConnection(callback, confirmListener);
@@ -98,8 +102,9 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             incomingChannel = conn.createChannel();
             int prefetch = Math.max(1, maxTasks + config.getPrefetchBuffer());
             incomingChannel.basicQos(prefetch);
-            WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel,
-                                                                               publisherQueue, config.getRetryQueue(), config.getRetryLimit());
+            final QueueConsumer consumerImpl = unnamed.hookQueueConsumer(
+                new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel,
+                                            publisherQueue, config.getRetryQueue(), config.getRetryLimit()));
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
             WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue, confirmListener);
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
@@ -118,26 +123,24 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     @Override
-    public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority) throws QueueException
+    public void publish(
+        final String acknowledgeId,
+        final byte[] taskMessage,
+        final String targetQueue,
+        final Map<String, Object> headers,
+        final int priority,
+        final boolean isFinalResponse
+    ) throws QueueException
     {
+        final long ackId = Long.parseLong(acknowledgeId);
+
         try {
             declareWorkerQueue(outgoingChannel, targetQueue, config.getMaxPriority());
         } catch (IOException e) {
             throw new QueueException("Failed to submit task", e);
         }
-        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, Long.parseLong(acknowledgeId), headers, priority));
-    }
 
-    /**
-     * {@inheritDoc}
-     *
-     * Add a PUBLISH event that the publisher thread will handle.
-     */
-    @Override
-    public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
-        throws QueueException
-    {
-        publish(acknowledgeId, taskMessage, targetQueue, headers, 0);
+        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, ackId, headers, priority, isFinalResponse));
     }
 
     /**

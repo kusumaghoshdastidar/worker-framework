@@ -38,7 +38,19 @@ import java.util.stream.Collectors;
  */
 class WorkerConfirmListener implements ConfirmListener
 {
-    private final SortedMap<Long, Long> confirmMap = Collections.synchronizedSortedMap(new TreeMap<>());
+    private static class MessageInfo
+    {
+        public final long requestMsgId;
+        public final boolean isFinalResponse;
+
+        public MessageInfo(final long requestMsgId, final boolean isFinalResponse)
+        {
+            this.requestMsgId = requestMsgId;
+            this.isFinalResponse = isFinalResponse;
+        }
+    }
+
+    private final SortedMap<Long, MessageInfo> confirmMap = Collections.synchronizedSortedMap(new TreeMap<>());
     private final BlockingQueue<Event<QueueConsumer>> consumerEvents;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerConfirmListener.class);
 
@@ -53,14 +65,20 @@ class WorkerConfirmListener implements ConfirmListener
      *
      * @param publishSequence the published sequence ID of the Worker response message
      * @param ackId the incoming task message ID to ack when the published response is confirmed
+     * @param isFinalResponse true if the message is the final response to the {@code ackId} message
      */
-    public void registerResponseSequence(long publishSequence, long ackId)
+    public void registerResponseSequence(long publishSequence, long ackId, boolean isFinalResponse)
     {
-        if (confirmMap.putIfAbsent(publishSequence, ackId) != null) {
+        final MessageInfo messageInfo = new MessageInfo(ackId, isFinalResponse);
+
+        if (confirmMap.putIfAbsent(publishSequence, messageInfo) != null) {
             throw new IllegalStateException("Sequence id " + publishSequence + " already present in confirmations map");
         }
-        LOG.debug("Listening for confirmation of publish sequence {} (ack message: {})", publishSequence, ackId);
-        confirmMap.put(publishSequence, ackId);
+
+        LOG.debug("Listening for confirmation of publish sequence {} (ack message: {}, is final response: {})",
+                  publishSequence, ackId, isFinalResponse);
+
+        confirmMap.put(publishSequence, messageInfo);
     }
 
     /**
@@ -91,18 +109,21 @@ class WorkerConfirmListener implements ConfirmListener
     private void handle(long sequenceNo, boolean multiple, Function<Long, Event<QueueConsumer>> eventSource)
     {
         if (multiple) {
-            Map<Long, Long> ackMap = confirmMap.headMap(sequenceNo + 1);
+            final Map<Long, MessageInfo> ackMap = confirmMap.headMap(sequenceNo + 1);
             synchronized (confirmMap) {
-                consumerEvents.addAll(ackMap.values().stream().map(eventSource::apply).collect(Collectors.toList()));
+                consumerEvents.addAll(ackMap.values().stream()
+                    .filter(messageInfo -> messageInfo.isFinalResponse)
+                    .map(messageInfo -> eventSource.apply(messageInfo.requestMsgId))
+                    .collect(Collectors.toList()));
             }
             ackMap.clear(); // clear all entries up to this (n)acked sequence number
         } else {
-            Long ackId = confirmMap.remove(sequenceNo);
-            if (ackId == null) {
+            final MessageInfo messageInfo = confirmMap.remove(sequenceNo);
+            if (messageInfo == null) {
                 LOG.error("RabbitMQ broker sent confirm for sequence number {}, which is not registered", sequenceNo);
                 throw new IllegalStateException("Sequence number " + sequenceNo + " not found in WorkerConfirmListener");
-            } else {
-                consumerEvents.add(eventSource.apply(ackId));
+            } else if (messageInfo.isFinalResponse) {
+                consumerEvents.add(eventSource.apply(messageInfo.requestMsgId));
             }
         }
     }

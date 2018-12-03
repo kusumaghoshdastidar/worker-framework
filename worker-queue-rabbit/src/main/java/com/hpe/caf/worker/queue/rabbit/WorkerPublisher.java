@@ -30,6 +30,7 @@ public interface WorkerPublisher
      * @param ackId the prior message id to acknowledge
      * @param headers key/value map of headers to add to the published message
      * @param priority message priority, greater value means higher priority
+     * @param isFinalResponse true if the message is the final response to the {@code ackId} message
      */
-    void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers, int priority);
+    void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers, int priority, boolean isFinalResponse);
 }

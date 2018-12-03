@@ -35,7 +35,7 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(1, 100);
+        conf.registerResponseSequence(1, 100, true);
         conf.handleAck(1, false);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -58,7 +58,7 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(1, 100);
+        conf.registerResponseSequence(1, 100, true);
         conf.handleAck(1, false);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -73,7 +73,7 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(1, 100);
+        conf.registerResponseSequence(1, 100, true);
         conf.handleNack(1, false);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -96,7 +96,7 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(1, 100);
+        conf.registerResponseSequence(1, 100, true);
         conf.handleNack(1, false);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -111,9 +111,9 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(5, 500);
-        conf.registerResponseSequence(1, 100);
-        conf.registerResponseSequence(2, 200);
+        conf.registerResponseSequence(5, 500, true);
+        conf.registerResponseSequence(1, 100, true);
+        conf.registerResponseSequence(2, 200, true);
         conf.handleAck(4, true);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -138,9 +138,9 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(5, 500);
-        conf.registerResponseSequence(1, 100);
-        conf.registerResponseSequence(2, 200);
+        conf.registerResponseSequence(5, 500, true);
+        conf.registerResponseSequence(1, 100, true);
+        conf.registerResponseSequence(2, 200, true);
         conf.handleAck(4, true);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -159,9 +159,9 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(5, 500);
-        conf.registerResponseSequence(1, 100);
-        conf.registerResponseSequence(2, 200);
+        conf.registerResponseSequence(5, 500, true);
+        conf.registerResponseSequence(1, 100, true);
+        conf.registerResponseSequence(2, 200, true);
         conf.handleNack(4, true);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -186,9 +186,9 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(5, 500);
-        conf.registerResponseSequence(1, 100);
-        conf.registerResponseSequence(2, 200);
+        conf.registerResponseSequence(5, 500, true);
+        conf.registerResponseSequence(1, 100, true);
+        conf.registerResponseSequence(2, 200, true);
         conf.handleNack(4, true);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -207,9 +207,9 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(1, 100);
+        conf.registerResponseSequence(1, 100, true);
         conf.clearConfirmations();
-        conf.registerResponseSequence(2, 200);
+        conf.registerResponseSequence(2, 200, true);
         conf.handleAck(4, true);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -224,7 +224,7 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(1, 100);
-        conf.registerResponseSequence(1, 100);
+        conf.registerResponseSequence(1, 100, true);
+        conf.registerResponseSequence(1, 100, true);
     }
 }
