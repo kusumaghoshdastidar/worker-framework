@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 class WorkerConfirmListener implements ConfirmListener
 {
-    private final SortedMap<Long, Long> confirmMap = Collections.synchronizedSortedMap(new TreeMap<>());
+    private final SortedMap<Long, MyTask> confirmMap = Collections.synchronizedSortedMap(new TreeMap<>());
     private final BlockingQueue<Event<QueueConsumer>> consumerEvents;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerConfirmListener.class);
 
@@ -52,9 +52,9 @@ class WorkerConfirmListener implements ConfirmListener
      * message as appropriate when RabbitMQ calls back.
      *
      * @param publishSequence the published sequence ID of the Worker response message
-     * @param ackId the incoming task message ID to ack when the published response is confirmed
+     * @param ackId the incoming task message to ack when the published response is confirmed
      */
-    public void registerResponseSequence(long publishSequence, long ackId)
+    public void registerResponseSequence(long publishSequence, MyTask ackId)
     {
         if (confirmMap.putIfAbsent(publishSequence, ackId) != null) {
             throw new IllegalStateException("Sequence id " + publishSequence + " already present in confirmations map");
@@ -91,17 +91,20 @@ class WorkerConfirmListener implements ConfirmListener
     private void handle(long sequenceNo, boolean multiple, Function<Long, Event<QueueConsumer>> eventSource)
     {
         if (multiple) {
-            Map<Long, Long> ackMap = confirmMap.headMap(sequenceNo + 1);
+            Map<Long, MyTask> ackMap = confirmMap.headMap(sequenceNo + 1);
             synchronized (confirmMap) {
                 consumerEvents.addAll(ackMap.values().stream().map(eventSource::apply).collect(Collectors.toList()));
             }
             ackMap.clear(); // clear all entries up to this (n)acked sequence number
         } else {
-            Long ackId = confirmMap.remove(sequenceNo);
+            MyTask ackId = confirmMap.remove(sequenceNo);
             if (ackId == null) {
                 LOG.error("RabbitMQ broker sent confirm for sequence number {}, which is not registered", sequenceNo);
                 throw new IllegalStateException("Sequence number " + sequenceNo + " not found in WorkerConfirmListener");
             } else {
+                
+                ackId.incrementAcknowledgementCount();
+                
                 consumerEvents.add(eventSource.apply(ackId));
             }
         }
