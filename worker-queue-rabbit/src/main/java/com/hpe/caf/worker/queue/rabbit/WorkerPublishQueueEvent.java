@@ -31,7 +31,6 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
     private final long tag;
     private final Map<String, Object> headerMap;
     private final int priority;
-    private final boolean isFinalResponse;
 
     /**
      * Create a new WorkerPublishQueueEvent
@@ -43,7 +42,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
      */
     public WorkerPublishQueueEvent(byte[] messageData, String routingKey, long ackId, Map<String, Object> headers)
     {
-        this(messageData, routingKey, ackId, headers, 0, true);
+        this(messageData, routingKey, ackId, headers, 0);
     }
 
     /**
@@ -53,23 +52,14 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
      * @param routingKey the routing key to publish the data on
      * @param ackId the id of a message previously consumed to acknowledge
      * @param headers the map of key/value paired headers to be stamped on the message
-     * @param isFinalResponse true if the message is the final response to the {@code ackId} message
      */
-    public WorkerPublishQueueEvent(
-        final byte[] messageData,
-        final String routingKey,
-        final long ackId,
-        final Map<String, Object> headers,
-        final int priority,
-        final boolean isFinalResponse
-    )
+    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, long ackId, Map<String, Object> headers, int priority)
     {
         this.data = Objects.requireNonNull(messageData);
         this.routingKey = Objects.requireNonNull(routingKey);
         this.tag = ackId;
         this.headerMap = Objects.requireNonNull(headers);
         this.priority = priority;
-        this.isFinalResponse = isFinalResponse;
     }
 
     public WorkerPublishQueueEvent(byte[] messageData, String routingKey, long ackId)
@@ -80,7 +70,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
     @Override
     public void handleEvent(WorkerPublisher target)
     {
-        target.handlePublish(data, routingKey, tag, headerMap, priority, isFinalResponse);
+        target.handlePublish(data, routingKey, tag, headerMap, priority);
     }
 
     /**
